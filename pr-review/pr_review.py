@@ -18,14 +18,30 @@ PR_NUMBER = int(os.environ["PR_NUMBER"])
 BASE_SHA = os.environ["BASE_SHA"]
 HEAD_SHA = os.environ["HEAD_SHA"]
 MERGE_SHA = os.environ.get("MERGE_SHA", HEAD_SHA)
+POLICY = load_policy()
+REVIEW_POLICY = review_config(POLICY)
+PR_POLICY = pr_config(POLICY)
 MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
-POLICY=load()
-REVIEW_POLICY=POLICY.get("review",{})
-PR_POLICY=POLICY.get("pull_request",{})
-REVIEW_EVENT=(os.environ.get("AI_DEVOPS_REVIEW_EVENT") or PR_POLICY.get("event","COMMENT")).upper()
-MIN_SCORE = float(os.environ.get("AI_DEVOPS_MIN_SCORE") or REVIEW_POLICY.get("min_score",0))
-FAIL_ON_HIGH_RISK = str(os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK") if os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK") not in (None,"") else REVIEW_POLICY.get("fail_on_high_risk",False)).lower()=="true"
-MAX_INLINE = int(os.environ.get("AI_DEVOPS_MAX_INLINE_FINDINGS") or REVIEW_POLICY.get("max_inline_findings",8))
+REVIEW_EVENT = (
+    os.environ.get("AI_DEVOPS_REVIEW_EVENT")
+    or PR_POLICY.get("event", "COMMENT")
+).upper()
+MIN_SCORE = float(
+    os.environ.get("AI_DEVOPS_MIN_SCORE")
+    or REVIEW_POLICY.get("min_score", 0)
+)
+FAIL_ON_HIGH_RISK = (
+    (
+        os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK")
+        if os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK") not in (None, "")
+        else str(REVIEW_POLICY.get("fail_on_high_risk", False))
+    ).lower()
+    == "true"
+)
+MAX_INLINE = int(
+    os.environ.get("AI_DEVOPS_MAX_INLINE_FINDINGS")
+    or REVIEW_POLICY.get("max_inline_findings", 8)
+)
 
 if REVIEW_EVENT not in {"COMMENT", "APPROVE", "REQUEST_CHANGES"}:
     raise RuntimeError("review-event deve ser COMMENT, APPROVE ou REQUEST_CHANGES.")
@@ -190,7 +206,7 @@ def groq(prompt):
         ],
         "temperature": 0.1,
         "reasoning_effort": "medium",
-        "max_tokens": 1800,
+        "max_tokens": 3000,
         "response_format": {
             "type": "json_schema",
             "json_schema": {

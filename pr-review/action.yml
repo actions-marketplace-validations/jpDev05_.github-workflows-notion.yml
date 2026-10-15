@@ -42,7 +42,7 @@ inputs:
     required: false
     default: ""
   policy-file:
-    description: Repository AI DevOps policy file.
+    description: Repository policy file.
     required: false
     default: ".ai-devops.yml"
 
@@ -91,11 +91,10 @@ runs:
         MERGE_SHA: ${{ github.sha }}
       run: |
         set -euo pipefail
-        if [ "${AI_DEVOPS_PROVIDER}" = "groq" ]; then
-          test -n "${GROQ_API_KEY}" || { echo "::error::GROQ_API_KEY não configurado"; exit 1; }
-        else
-          test -n "${AI_DEVOPS_API_KEY}" || { echo "::error::AI API key não configurada"; exit 1; }
-        fi
+        test -n "${GROQ_API_KEY}" || {
+          echo "::error::GROQ_API_KEY não configurado"
+          exit 1
+        }
         test -n "${GITHUB_TOKEN}" || {
           echo "::error::GITHUB_TOKEN não configurado"
           exit 1

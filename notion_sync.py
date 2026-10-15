@@ -6,7 +6,7 @@ import urllib.request
 import urllib.error
 import time
 
-from scripts.policy import load_policy
+from scripts.policy import load_policy, review_config
 
 
 # =========================================================
@@ -16,6 +16,9 @@ from scripts.policy import load_policy
 POLICY = load_policy()
 REVIEW_POLICY = POLICY.get("review", {})
 NOTION_ENABLED = os.environ.get("NOTION_ENABLED", "true").lower() == "true"
+
+POLICY = load_policy()
+REVIEW_POLICY = review_config(POLICY)
 TOKEN = os.environ.get("NOTION_TOKEN", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 AI_PROVIDER = os.environ.get("AI_PROVIDER", "groq").lower()
@@ -38,9 +41,19 @@ GROQ_MODEL = os.environ.get(
     "openai/gpt-oss-20b"
 )
 
-MIN_SCORE = float(os.environ.get("AI_DEVOPS_MIN_SCORE") or REVIEW_POLICY.get("min_score", 0))
+MIN_SCORE = float(
+    os.environ.get("AI_DEVOPS_MIN_SCORE")
+    or REVIEW_POLICY.get("min_score", 0)
+)
 
-FAIL_ON_HIGH_RISK = (str(os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK") if os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK") not in (None, "") else REVIEW_POLICY.get("fail_on_high_risk", False)).lower() == "true")
+FAIL_ON_HIGH_RISK = (
+    (
+        os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK")
+        if os.environ.get("AI_DEVOPS_FAIL_ON_HIGH_RISK") not in (None, "")
+        else str(REVIEW_POLICY.get("fail_on_high_risk", False))
+    ).lower()
+    == "true"
+)
 
 if AI_PROVIDER == "groq" and not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY não configurado.")
