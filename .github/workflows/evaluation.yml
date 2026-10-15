@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - name: Validate Python syntax
@@ -36,6 +36,12 @@ jobs:
               yaml.safe_load(path.read_text(encoding="utf-8"))
           print("YAML validation passed")
           PY
+      - name: Install test runner
+        run: python -m pip install pytest
+
+      - name: Run repository policy tests
+        run: python -m pytest -q tests/test_policy.py tests/test_security_scan.py
+
       - name: Run security scanner contract
         run: |
           python scripts/security_scan.py > /tmp/security.json
